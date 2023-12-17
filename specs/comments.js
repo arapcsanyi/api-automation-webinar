@@ -6,46 +6,41 @@ const api = require('./utils/api');
 const data = require('../server/data.json');
 
 
-describe('Posts', () => {
-    let addedId;
+describe('Comments', () => {
     describe('Create', () => {
+        let addedId;
 
-        it('should add a new post', () => {
-            return chakram.post(api.url('posts'), {
+        it('should add a new comment', () => {
+            return chakram.post(api.url('comments'), {
                 title: 'title',
                 body: 'body',
-                userId: 1
+                postId: 1
             }).then(response => {
                 expect(response.response.statusCode).to.match(/^20/);
                 expect(response.body.data.id).to.be.defined;
 
                 addedId = response.body.data.id;
 
-                const post = chakram.get(api.url('posts/' + addedId));
-                expect(post).to.have.status(200);
-                expect(post).to.have.json('data.id', addedId);
-                expect(post).to.have.json('data.title', 'title');
-                expect(post).to.have.json('data.body', 'body');
-                expect(post).to.have.json('data.userId', 1);
+                const comment = chakram.get(api.url('comments/' + addedId));
+                expect(comment).to.have.status(200);
+                expect(comment).to.have.json('data.id', addedId);
+                expect(comment).to.have.json('data.title', 'title');
+                expect(comment).to.have.json('data.body', 'body');
+                expect(comment).to.have.json('data.postId', 1);
                 return chakram.wait();
             });
         });
 
-        it('should not add a new row with existing ID', () => {
-            const response = chakram.post(api.url('posts'), {
-                id: 49,
-                title: 'title',
-                body: 'body',
-                userId: 5
-            });
-            expect(response).to.have.status(500);
-            return chakram.wait();
+        after(() => {
+            if (addedId) {
+                return chakram.delete(api.url('comments/' + addedId));
+            }
         });
     });
 
     describe('Read', () => {
-        it('should have posts', () => {
-            const response = chakram.get(api.url('posts'));
+        it('should have comments', () => {
+            const response = chakram.get(api.url('comments'));
             expect(response).to.have.status(200);
             expect(response).to.have.json('data', data => {
                 expect(data).to.be.instanceof(Array);
@@ -55,40 +50,39 @@ describe('Posts', () => {
         });
     });
 
-    it('should return a post by ID', () => {
-        const expectedPost = data.posts[0];
+    it('should return a comment by ID', () => {
+        const expectedComment = data.comments[0];
 
-        const response = chakram.get(api.url('posts/' + expectedPost.id));
+        const response = chakram.get(api.url('comments/' + expectedComment.id));
         expect(response).to.have.status(200);
-        expect(response).to.have.json('data', post => {
-            expect(post).to.be.defined;
-            expect(post.id).to.equal(expectedPost.id);
-            expect(post.userId).to.equal(expectedPost.userId);
-            expect(post.title).to.equal(expectedPost.title);
-            expect(post.body).to.equal(expectedPost.body);
+        expect(response).to.have.json('data', comment => {
+            expect(comment).to.be.defined;
+            expect(comment.id).to.equal(expectedComment.id);
+            expect(comment.title).to.equal(expectedComment.title);
+            expect(comment.body).to.equal(expectedComment.body);
         });
         return chakram.wait();
     });
 
     it('should not return post for invalid ID', () => {
-        const response = chakram.get(api.url('posts/no-id-like-this'));
+        const response = chakram.get(api.url('comments/no-id-like-this'));
         return expect(response).to.have.status(404);
     });
 
     describe('Update', () => {
-        it('should update existing post with given data', () => {
-            const response = chakram.put(api.url('posts/' + addedId), {
+        it('should update existing comments with given data', () => {
+            const response = chakram.put(api.url('comments/50'), {
                 title: 'title',
                 body: 'body',
-                userId: 111
+                comment: 111
             });
             expect(response).to.have.status(200);
             return response.then(data => {
-                const post = chakram.get(api.url('posts/' + addedId));
+                const post = chakram.get(api.url('comments/50'));
                 expect(post).to.have.json('data', data => {
                     expect(data.title).to.equal('title');
                     expect(data.body).to.equal('body');
-                    expect(data.userId).to.equal(111);
+                    expect(data.comment).to.equal(111);
                 });
                 return chakram.wait();
             });
@@ -107,10 +101,10 @@ describe('Posts', () => {
 
     describe('Delete', () => {
         it('should delete post by ID', () => {
-            const response = chakram.delete(api.url('posts/' + addedId));
+            const response = chakram.delete(api.url('posts/50'));
             expect(response).to.have.status(200);
             return response.then(data => {
-                const post = chakram.get(api.url('posts/' + addedId));
+                const post = chakram.get(api.url('posts/50'));
                 expect(post).to.have.status(404);
                 return chakram.wait();
             });
