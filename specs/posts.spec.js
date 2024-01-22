@@ -4,45 +4,46 @@ const chakram = require('chakram');
 const expect = chakram.expect;
 const api = require('./utils/api');
 const data = require('../server/data.json');
+const testData = require('./utils/testData.json');
 
 
 describe('Posts', () => {
     let addedId;
     describe('Create', () => {
+        testData.forEach((testCase) => {
+            it('should add a new post', () => {
+                return chakram.post(api.url('posts'), {
+                    title: testCase.title,
+                    body: testCase.body,
+                    userId: testCase.userId
+                }).then(response => {
+                    expect(response.response.statusCode).to.match(/^20/);
+                    expect(response.body.data.id).to.be.defined;
 
-        it('should add a new post', () => {
-            return chakram.post(api.url('posts'), {
-                title: 'title',
-                body: 'body',
-                userId: 1
-            }).then(response => {
-                expect(response.response.statusCode).to.match(/^20/);
-                expect(response.body.data.id).to.be.defined;
+                    addedId = response.body.data.id;
 
-                addedId = response.body.data.id;
+                    const post = chakram.get(api.url('posts/' + addedId));
+                    expect(post).to.have.status(200);
+                    expect(post).to.have.json('data.id', addedId);
+                    expect(post).to.have.json('data.title', testCase.title);
+                    expect(post).to.have.json('data.body', testCase.body);
+                    expect(post).to.have.json('data.userId', testCase.userId);
+                    return chakram.wait();
+                });
+            });
 
-                const post = chakram.get(api.url('posts/' + addedId));
-                expect(post).to.have.status(200);
-                expect(post).to.have.json('data.id', addedId);
-                expect(post).to.have.json('data.title', 'title');
-                expect(post).to.have.json('data.body', 'body');
-                expect(post).to.have.json('data.userId', 1);
+            it('should not add a new row with existing ID', () => {
+                const response = chakram.post(api.url('posts'), {
+                    id: 49,
+                    title: testCase.title,
+                    body: testCase.body,
+                    userId: testCase.userId
+                });
+                expect(response).to.have.status(500);
                 return chakram.wait();
             });
         });
-
-        it('should not add a new row with existing ID', () => {
-            const response = chakram.post(api.url('posts'), {
-                id: 49,
-                title: 'title',
-                body: 'body',
-                userId: 5
-            });
-            expect(response).to.have.status(500);
-            return chakram.wait();
-        });
     });
-
     describe('Read', () => {
         it('should have posts', () => {
             const response = chakram.get(api.url('posts'));
@@ -76,50 +77,65 @@ describe('Posts', () => {
     });
 
     describe('Update', () => {
-        it('should update existing post with given data', () => {
-            const response = chakram.put(api.url('posts/' + addedId), {
-                title: 'title',
-                body: 'body',
-                userId: 111
-            });
-            expect(response).to.have.status(200);
-            return response.then(data => {
-                const post = chakram.get(api.url('posts/' + addedId));
-                expect(post).to.have.json('data', data => {
-                    expect(data.title).to.equal('title');
-                    expect(data.body).to.equal('body');
-                    expect(data.userId).to.equal(111);
+        testData.forEach((testCase) => {
+            it('should update existing post with given data', () => {
+                const response = chakram.put(api.url(`photos/${testCase.id}`), {
+                    title: testCase.title,
+                    body: testCase.body,
+                    userId: testCase.userId
                 });
+
+                expect(response).to.have.status(200);
+
+                return response.then(() => {
+                    const post = chakram.get(api.url(`photos/${testCase.id}`));
+
+                    expect(post).to.have.status(200);
+                    expect(post).to.have.json('data', updatedData => {
+                        expect(updatedData.title).to.equal(testCase.title);
+                        expect(updatedData.body).to.equal(testCase.body);
+                        expect(updatedData.userId).to.equal(testCase.userId);
+                    });
+
+                    return chakram.wait();
+                });
+            });
+
+            it('should throw error if the post does not exist', () => {
+                const response = chakram.put(api.url(`photos/${testCase.notExistingId}`), {
+                    title: testCase.title,
+                    body: testCase.body,
+                    userId: testCase.userId
+                });
+
+                expect(response).to.have.status(404);
+
                 return chakram.wait();
             });
-        });
-
-        it('should throw error if the post does not exist', () => {
-            const response = chakram.put(api.url('posts/111'), {
-                title: 'title',
-                body: 'body',
-                userId: 111
-            });
-            expect(response).to.have.status(404);
-            return chakram.wait();
         });
     });
 
+
     describe('Delete', () => {
-        it('should delete post by ID', () => {
-            const response = chakram.delete(api.url('posts/' + addedId));
-            expect(response).to.have.status(200);
-            return response.then(data => {
-                const post = chakram.get(api.url('posts/' + addedId));
-                expect(post).to.have.status(404);
+        testData.forEach((testCase) => {
+            it('should delete post by ID', () => {
+                const response = chakram.delete(api.url(`posts/${testCase.idToDelete}`));
+                expect(response).to.have.status(200);
+
+                return response.then(() => {
+                    const post = chakram.get(api.url(`posts/${testCase.idToDelete}`));
+                    expect(post).to.have.status(404);
+
+                    return chakram.wait();
+                });
+            });
+
+            it('should throw error if the post does not exist', () => {
+                const response = chakram.delete(api.url(`posts/${testCase.notExistingId}`));
+                expect(response).to.have.status(404);
+
                 return chakram.wait();
             });
-        });
-
-        it('should throw error if the post does not exist', () => {
-            const response = chakram.delete(api.url('posts/111'));
-            expect(response).to.have.status(404);
-            return chakram.wait();
         });
     });
 });

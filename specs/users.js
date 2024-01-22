@@ -4,68 +4,49 @@ const chakram = require('chakram');
 const expect = chakram.expect;
 const api = require('./utils/api');
 const data = require('../server/data.json');
+const testData = require('./utils/testData.json');
 
 
 describe('Users', () => {
     describe('Create', () => {
-        let addedId;
+        testData.forEach((testCase) => {
+            let addedId;
 
-        it('should add a new user', () => {
-            return chakram.post(api.url('users'), {
-                name: 'name',
-                username: 'username',
-                email: 'email',
-                address: {
-                    street: 'street',
-                    suite: 'suite',
-                    city: 'city',
-                    zipcode: 'zipcode',
-                    geo: {
-                        lat: 'lat',
-                        lng: 'lng'
-                    }
-                },
-                phone: 'phone',
-                website: 'website',
-                company: {
-                    name: 'name',
-                    catchPhrase: 'catchPhrase',
-                    bs: 'bs'
+            it('should add a new user', () => {
+                return chakram.post(api.url('users'), testCase.user).then(response => {
+                    expect(response.response.statusCode).to.match(/^20/);
+                    expect(response.body.data.id).to.be.defined;
+
+                    addedId = response.body.data.id;
+
+                    const user = chakram.get(api.url('users/' + addedId));
+                    expect(user).to.have.status(200);
+                    expect(user).to.have.json('data.id', addedId);
+                    expect(user).to.have.json('data.name', testCase.user.name);
+                    expect(user).to.have.json('data.username', testCase.user.username);
+                    expect(user).to.have.json('data.email', testCase.user.email);
+                    expect(user).to.have.json('data.address.street', testCase.user.address.street);
+                    expect(user).to.have.json('data.address.suite', testCase.user.address.suite);
+                    expect(user).to.have.json('data.address.city', testCase.user.address.city);
+                    expect(user).to.have.json('data.address.zipcode', testCase.user.address.zipcode);
+                    expect(user).to.have.json('data.address.geo.lat', testCase.user.address.geo.lat);
+                    expect(user).to.have.json('data.address.geo.lng', testCase.user.address.geo.lng);
+                    expect(user).to.have.json('data.phone', testCase.user.phone);
+                    expect(user).to.have.json('data.website', testCase.user.website);
+                    expect(user).to.have.json('data.company.name', testCase.user.company.name);
+                    expect(user).to.have.json('data.company.catchPhrase', testCase.user.company.catchPhrase);
+                    expect(user).to.have.json('data.company.bs', testCase.user.company.bs);
+                    return chakram.wait();
+                });
+            });
+
+            after(() => {
+                if (addedId) {
+                    return chakram.delete(api.url('users/' + addedId));
                 }
-            }).then(response => {
-                expect(response.response.statusCode).to.match(/^20/);
-                expect(response.body.data.id).to.be.defined;
-
-                addedId = response.body.data.id;
-
-                const user = chakram.get(api.url('users/' + addedId));
-                expect(user).to.have.status(200);
-                expect(user).to.have.json('data.id', addedId);
-                expect(user).to.have.json('data.name', 'name');
-                expect(user).to.have.json('data.username', 'username');
-                expect(user).to.have.json('data.email', 'email');
-                expect(user).to.have.json('data.address.street', 'street');
-                expect(user).to.have.json('data.address.suite', 'suite');
-                expect(user).to.have.json('data.address.city', 'city');
-                expect(user).to.have.json('data.address.zipcode', 'zipcode');
-                expect(user).to.have.json('data.address.geo.lat', 'lat');
-                expect(user).to.have.json('data.address.geo.lng', 'lng');
-                expect(user).to.have.json('data.phone', 'phone');
-                expect(user).to.have.json('data.website', 'website');
-                expect(user).to.have.json('data.company.name', 'name');
-                expect(user).to.have.json('data.company.catchPhrase', 'catchPhrase');
-                expect(user).to.have.json('data.company.bs', 'bs');
-                return chakram.wait();
             });
         });
-
-        after(() => {
-            if (addedId) {
-                return chakram.delete(api.url('users/' + addedId));
-            }
-        });
     });
-
     describe('Read', () => {
         it('should have users', () => {
             const response = chakram.get(api.url('users'));
@@ -111,96 +92,41 @@ describe('Users', () => {
 
     describe('Update', () => {
         it('should update existing user with given data', () => {
-            const response = chakram.put(api.url('users/3'), {
-                id: 3,
-                name: 'name',
-                username: 'username',
-                email: 'email',
-                address: {
-                    street: 'street',
-                    suite: 'suite',
-                    city: 'city',
-                    zipcode: 'zipcode',
-                    geo: {
-                        lat: 'lat',
-                        lng: 'lng'
-                    }
-                },
-                phone: 'phone',
-                website: 'website',
-                company: {
-                    name: 'name',
-                    catchPhrase: 'catchPhrase',
-                    bs: 'bs'
-                }
-            });
-            expect(response).to.have.status(200);
-            return response.then(data => {
-                const post = chakram.get(api.url('users/3'));
-                expect(post).to.have.json('data', data => {
-                    expect(data.name).to.equal('name');
-                    expect(data.username).to.equal('username');
-                    expect(data.email).to.equal('email');
-                    expect(data.address.street).to.equal('street');
-                    expect(data.address.suite).to.equal('suite');
-                    expect(data.address.city).to.equal('city');
-                    expect(data.address.zipcode).to.equal('zipcode');
-                    expect(data.address.geo.lat).to.equal('lat');
-                    expect(data.address.geo.lng).to.equal('lng');
-                    expect(data.phone).to.equal('phone');
-                    expect(data.website).to.equal('website');
-                    expect(data.company.name).to.equal('name');
-                    expect(data.company.catchPhrase).to.equal('catchPhrase');
-                    expect(data.company.bs).to.equal('bs');
+            testData.forEach((testCase) => {
+                const response = chakram.put(api.url('users/' + testCase.userId), testCase.user);
+                return response.then(data => {
+                    const post = chakram.get(api.url('users/' + testCase.userId));
+                    expect(post).to.have.status(200);
+                    expect(post).to.have.json('data', updatedData => {
+                        expect(updatedData.name).to.equal(testCase.user.name);
+                        expect(updatedData.username).to.equal(testCase.user.username);
+                    });
+                    return chakram.wait();
                 });
+            });
+
+            it('should throw error if the User does not exist', () => {
+                const response = chakram.put(api.url('users/' + testCase.notExistingId), {
+                });
+                expect(response).to.have.status(404);
                 return chakram.wait();
             });
-        });
-
-        it('should throw error if the User does not exist', () => {
-            const response = chakram.put(api.url('users/111'), {
-                id: 111,
-                name: 'name',
-                username: 'username',
-                email: 'email',
-                address: {
-                    street: 'street',
-                    suite: 'suite',
-                    city: 'city',
-                    zipcode: 'zipcode',
-                    geo: {
-                        lat: 'lat',
-                        lng: 'lng'
-                    }
-                },
-                phone: 'phone',
-                website: 'website',
-                company: {
-                    name: 'name',
-                    catchPhrase: 'catchPhrase',
-                    bs: 'bs'
-                }
-            });
-            expect(response).to.have.status(404);
-            return chakram.wait();
         });
     });
 
     describe('Delete', () => {
-        it('should delete User by ID', () => {
-            const response = chakram.delete(api.url('users/10'));
-            expect(response).to.have.status(200);
-            return response.then(data => {
-                const user = chakram.get(api.url('users/10'));
-                expect(user).to.have.status(404);
+        testData.forEach((testCase) => {
+            it('should throw error if the user does not exist', () => {
+                const response = chakram.delete(api.url('users/' + testCase.notExistingId));
+                expect(response).to.have.status(404);
                 return chakram.wait();
             });
-        });
 
-        it('should throw error if the user does not exist', () => {
-            const response = chakram.delete(api.url('users/111'));
-            expect(response).to.have.status(404);
-            return chakram.wait();
+            it('should delete user by ID', () => {
+                const response = chakram.delete(api.url('users/' + testCase.userId));
+                expect(response).to.have.status(200);
+                return chakram.wait();
+            });
         });
     });
 });

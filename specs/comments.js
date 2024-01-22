@@ -4,41 +4,46 @@ const chakram = require('chakram');
 const expect = chakram.expect;
 const api = require('./utils/api');
 const data = require('../server/data.json');
+const { Test } = require('mocha');
+const testData = require('./utils/testData.json');
 
 
 describe('Comments', () => {
     describe('Create', () => {
-        let addedId;
+        testData.forEach((testCase) => {
+            let addedId;
 
-        it('should add a new comment', () => {
-            return chakram.post(api.url('comments'), {
-                title: 'title',
-                body: 'body',
-                postId: 1
-            }).then(response => {
-                expect(response.response.statusCode).to.match(/^20/);
-                expect(response.body.data.id).to.be.defined;
+            it('should add a new comment', () => {
+                return chakram.post(api.url('comments'), {
+                    title: testCase.title,
+                    body: testCase.body,
+                    postId: testCase.postId
+                }).then(response => {
+                    expect(response.response.statusCode).to.match(/^20/);
+                    expect(response.body.data.id).to.be.defined;
 
-                addedId = response.body.data.id;
+                    addedId = response.body.data.id;
 
-                const comment = chakram.get(api.url('comments/' + addedId));
-                expect(comment).to.have.status(200);
-                expect(comment).to.have.json('data.id', addedId);
-                expect(comment).to.have.json('data.title', 'title');
-                expect(comment).to.have.json('data.body', 'body');
-                expect(comment).to.have.json('data.postId', 1);
-                return chakram.wait();
+                    const comment = chakram.get(api.url('comments/' + addedId));
+                    expect(comment).to.have.status(200);
+                    expect(comment).to.have.json('data.id', addedId);
+                    expect(comment).to.have.json('data.title', testCase.title);
+                    expect(comment).to.have.json('data.body', testCase.body);
+                    expect(comment).to.have.json('data.postId', testCase.postId);
+                    return chakram.wait();
+                });
             });
-        });
 
-        after(() => {
-            if (addedId) {
-                return chakram.delete(api.url('comments/' + addedId));
-            }
+            after(() => {
+                if (addedId) {
+                    return chakram.delete(api.url('comments/' + addedId));
+                }
+            });
         });
     });
 
     describe('Read', () => {
+
         it('should have comments', () => {
             const response = chakram.get(api.url('comments'));
             expect(response).to.have.status(200);
@@ -70,50 +75,56 @@ describe('Comments', () => {
     });
 
     describe('Update', () => {
-        it('should update existing comments with given data', () => {
-            const response = chakram.put(api.url('comments/50'), {
-                title: 'title',
-                body: 'body',
-                comment: 111
-            });
-            expect(response).to.have.status(200);
-            return response.then(data => {
-                const post = chakram.get(api.url('comments/50'));
-                expect(post).to.have.json('data', data => {
-                    expect(data.title).to.equal('title');
-                    expect(data.body).to.equal('body');
-                    expect(data.comment).to.equal(111);
+        testData.forEach((testCase) => {
+            it('should update existing comments with given data', () => {
+                const response = chakram.put(api.url(`comments/${testCase.commentId}`), {
+                    title: testCase.title,
+                    body: testCase.body,
+                    comment: 111
                 });
+                expect(response).to.have.status(200);
+                return response.then(data => {
+                    const post = chakram.get(api.url(`comments/${testCase.commentId}`));
+                    expect(post).to.have.status(200);
+                    expect(post).to.have.json('data', updatedData => {
+                        expect(updatedData.title).to.equal(testCase.title);
+                        expect(updatedData.body).to.equal(testCase.body);
+                        expect(updatedData.comment).to.equal(111);
+                    });
+                    return chakram.wait();
+                });
+            });
+
+            it('should throw error if the post does not exist', () => {
+                const response = chakram.put(api.url(`comments/${testCase.notExistingId}`), {
+                    title: testCase.title,
+                    body: testCase.body,
+                    userId: testCase.userId
+                });
+                expect(response).to.have.status(404);
                 return chakram.wait();
             });
-        });
-
-        it('should throw error if the post does not exist', () => {
-            const response = chakram.put(api.url('posts/111'), {
-                title: 'title',
-                body: 'body',
-                userId: 111
-            });
-            expect(response).to.have.status(404);
-            return chakram.wait();
         });
     });
 
+
     describe('Delete', () => {
-        it('should delete post by ID', () => {
-            const response = chakram.delete(api.url('posts/50'));
-            expect(response).to.have.status(200);
-            return response.then(data => {
-                const post = chakram.get(api.url('posts/50'));
-                expect(post).to.have.status(404);
+        testData.forEach((testCase) => {
+            it('should delete comment by ID', () => {
+                const response = chakram.delete(api.url(`comments/${testCase.idToDelete}`));
+                expect(response).to.have.status(200);
+                return response.then(data => {
+                    const comment = chakram.get(api.url(`comments/${testCase.idToDelete}`));
+                    expect(comment).to.have.status(404);
+                    return chakram.wait();
+                });
+            });
+
+            it('should throw error if the post does not exist', () => {
+                const response = chakram.delete(api.url(`comments/${testCase.notExistingId}`));
+                expect(response).to.have.status(404);
                 return chakram.wait();
             });
-        });
-
-        it('should throw error if the post does not exist', () => {
-            const response = chakram.delete(api.url('posts/111'));
-            expect(response).to.have.status(404);
-            return chakram.wait();
         });
     });
 });
