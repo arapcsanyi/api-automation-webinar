@@ -1,0 +1,107 @@
+[
+    {
+        "user": {
+            "name": "John Doe",
+            "username": "johndoe",
+            "email": "john.doe@example.com",
+            "address": {
+                "street": "123 Main St",
+                "suite": "Apt 101",
+                "city": "Cityville",
+                "zipcode": "12345",
+                "geo": {
+                    "lat": "40.7128",
+                    "lng": "-74.0060"
+                }
+            },
+            "phone": "555-1234",
+            "website": "johndoe.com",
+            "company": {
+                "name": "Tech Solutions",
+                "catchPhrase": "Innovate and Excel",
+                "bs": "Technology"
+            }
+        },
+        "notExistingId": 8888,
+        "idToDelete": 10,
+        "id": 1,
+        "userId": 1,
+        "postId": 1,
+        "commentId": 1,
+        "title": "The Best Title",
+        "body": "The Best Body",
+        "url": "The Best Url",
+        "thumbnailUrl": "The Best Thumbnail Url",
+        "completed": false
+    },
+    {
+        "user": {
+            "name": "Alice Johnson",
+            "username": "alicej",
+            "email": "alice.j@example.com",
+            "address": {
+                "street": "456 Oak St",
+                "suite": "Apt 202",
+                "city": "Townsville",
+                "zipcode": "54321",
+                "geo": {
+                    "lat": "34.0522",
+                    "lng": "-118.2437"
+                }
+            },
+            "phone": "555-5678",
+            "website": "alicej.com",
+            "company": {
+                "name": "Design Innovators",
+                "catchPhrase": "Create and Inspire",
+                "bs": "Design"
+            }
+        },
+        "notExistingId": 9999,
+        "idToDelete": 11,
+        "id": 2,
+        "userId": 2,
+        "postId": 2,
+        "commentId": 2,
+        "title": "The Second Best Title",
+        "body": "The Second Best Body",
+        "url": "The Second Best Url",
+        "thumbnailUrl": "The Second Best Thumbnail Url",
+        "completed": false
+    },
+    {
+        "user": {
+            "name": "Bob Smith",
+            "username": "bobsmith",
+            "email": "bob.smith@example.com",
+            "address": {
+                "street": "789 Pine St",
+                "suite": "Apt 303",
+                "city": "Villageton",
+                "zipcode": "98765",
+                "geo": {
+                    "lat": "41.8781",
+                    "lng": "-87.6298"
+                }
+            },
+            "phone": "555-9101",
+            "website": "bobsmith.com",
+            "company": {
+                "name": "Financial Consultants",
+                "catchPhrase": "Analyze and Succeed",
+                "bs": "Finance"
+            }
+        },
+        "notExistingId": 7777,
+        "idToDelete": 12,
+        "id": 3,
+        "userId": 3,
+        "postId": 3,
+        "commentId": 3,
+        "title": "The Third Best Title",
+        "body": "The Third Best Body",
+        "url": "The Third Best Url",
+        "thumbnailUrl": "The Third Best Thumbnail Url",
+        "completed": false
+    }
+]
